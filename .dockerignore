@@ -1,0 +1,4 @@
+*
+!Dockerfile
+!entrypoint-wrapper.sh
+!staging/
