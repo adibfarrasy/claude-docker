@@ -51,6 +51,25 @@ COPY --from=go-tools /out/gopls /usr/local/bin/gopls
 RUN chmod 755 /usr/local/bin/rtk /usr/local/bin/allium /usr/local/bin/gopls \
  && rtk --version && allium --version && gopls version
 
+# Go toolchain (go build / go test)
+COPY --from=golang:bookworm /usr/local/go /usr/local/go
+ENV PATH=/usr/local/go/bin:/go/bin:$PATH \
+    GOPATH=/go
+RUN mkdir -p /go/bin /go/src /go/pkg && chmod -R a+rwX /go && go version
+
+# Rust toolchain (cargo build / cargo test). Need a C linker + common build deps.
+RUN echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/80-retries \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends --fix-missing \
+        build-essential pkg-config libssl-dev ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+COPY --from=rust:bookworm /usr/local/cargo /usr/local/cargo
+COPY --from=rust:bookworm /usr/local/rustup /usr/local/rustup
+ENV RUSTUP_HOME=/usr/local/rustup \
+    CARGO_HOME=/usr/local/cargo \
+    PATH=/usr/local/cargo/bin:$PATH
+RUN chmod -R a+rwX /usr/local/cargo /usr/local/rustup && rustc --version && cargo --version
+
 # Bake portable host config into /claude-defaults. The wrapper entrypoint
 # seeds /claude from this on first run so a volume mount at /claude still
 # works (first run into an empty volume populates it).

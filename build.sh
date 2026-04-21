@@ -33,7 +33,7 @@ rsync -a \
     --exclude='history.jsonl' \
     --exclude='mcp-needs-auth-cache.json' \
     --exclude='settings.json.bak' \
-    --exclude='plugins/cache/' \
+    --exclude='plugins/cache/agentmemory/' \
     "$SRC"/ "$STAGE"/
 
 # Rewrite absolute host paths in settings.json so hooks resolve inside
@@ -54,7 +54,8 @@ fi
 
 # Drop agentmemory plugin files if present.
 rm -rf "$STAGE/plugins/repos/agentmemory" \
-       "$STAGE/plugins/marketplaces/agentmemory" 2>/dev/null || true
+       "$STAGE/plugins/marketplaces/agentmemory" \
+       "$STAGE/plugins/cache/agentmemory" 2>/dev/null || true
 
 echo "Staged $(du -sh "$STAGE" | cut -f1) of config"
 
